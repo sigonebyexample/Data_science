@@ -1,10 +1,3 @@
-"""
-Social Network Analysis Example
-This script demonstrates basic social network analysis concepts using Python.
-It analyzes friendships between users and finds mutual connections.
-"""
-
-# Define our list of users with unique IDs and names
 users = [
     { "id": 0, "name": "Alice" },
     { "id": 1, "name": "Bob" },
@@ -18,90 +11,84 @@ users = [
     { "id": 9, "name": "Judy" }
 ]
 
-# Define friendship connections as tuples of user IDs
 friendships = [ (0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (3, 4),
                 (4, 5), (5, 6), (5, 7), (6, 8), (7, 8), (8, 9) ]
 
-# Initialize empty friends list for each user
 for user in users:
     user["friends"] = []
 
-# Build the friendship network - make connections bidirectional
 for i, j in friendships:
     users[i]["friends"].append(users[j])  # add j as a friend of i
     users[j]["friends"].append(users[i])  # add i as a friend of j
 
 def number_of_friends(user):
-    """Calculate the number of friends for a given user."""
     return len(user["friends"])
 
-# Calculate total connections in the network
 total_connections = sum(number_of_friends(user) for user in users)
 
-# Calculate average number of connections per user
 num_users = len(users)
 avg_connections = total_connections / num_users
 
-# Create a list of tuples containing user ID and their friend count
 number_friends_by_id = [(user["id"], number_of_friends(user)) for user in users]
 
-# Sort users by number of friends in descending order
+# Corrected line - use indexing instead of tuple unpacking in lambda
 sorted_friends = sorted(number_friends_by_id,
-                       key=lambda x: x[1],  # Sort by the second element (friend count)
+                       key=lambda x: x[1],  # x[1] refers to num_friends
                        reverse=True)
 
 print("Users sorted by number of friends (descending):")
 for user_id, num_friends in sorted_friends:
     print(f"User {user_id}: {num_friends} friends")
 
-def friends_of_friend_ids_bad(user):
-    """
-    Get all friends-of-friends IDs (naive approach).
-    This includes duplicates and doesn't exclude direct friends.
-    """
-    return [foaf["id"]  # foaf = Friend Of A Friend
-           for friend in user["friends"]  # For each direct friend
-           for foaf in friend["friends"]]  # Get all of their friends
 
-from collections import Counter  # Import Counter for counting mutual friends
+def friends_of_friend_ids_bad(user):
+    return [foaf["id"]
+           for friend in user["friends"]
+           for foaf in friend["friends"]]
+
+from collections import Counter
 
 def not_the_same(user, other_user):
-    """Check if two users are different people."""
     return user["id"] != other_user["id"]
 
 def not_friends(user, other_user):
-    """Check if other_user is not already a direct friend of user."""
     return all(not_the_same(friend, other_user)
                for friend in user["friends"])
 
 def friends_of_friend_ids(user):
-    """
-    Find friends-of-friends with counts (proper implementation).
-    Returns a Counter object with friend IDs and how many mutual friends they have.
-    """
-    return Counter(foaf["id"]  # Count occurrences of each friend-of-friend ID
-                   for friend in user["friends"]  # For each direct friend
-                   for foaf in friend["friends"]  # For each of their friends
-                   if not_the_same(user, foaf)  # Exclude the user themselves
-                   and not_friends(user, foaf))  # Exclude direct friends
+    return Counter(foaf["id"]
+                   for friend in user["friends"]
+                   for foaf in friend["friends"]
+                   if not_the_same(user, foaf)
+                   and not_friends(user, foaf))
 
-# Method 1: Safe way to get user by ID (recommended)
-# Find the user with ID 5 using a generator expression
+# Corrected: Access user with id=5 from the users list
 user_5 = next(user for user in users if user["id"] == 5)
-print("\nFriends of friends for user 5 (safe method):", friends_of_friend_ids(user_5))
+print("Friends of friends for user 5:", friends_of_friend_ids(user_5))
 
-# Method 2: Direct list index access (works in this specific case)
-# This works because user IDs match list indices, but isn't reliable in general
-print("Friends of friends for user 5 (direct index):", friends_of_friend_ids(users[5]))
-
-# Print additional network statistics
-print(f"\nNetwork Statistics:")
-print(f"Total users: {num_users}")
-print(f"Total connections: {total_connections}")
-print(f"Average connections per user: {avg_connections:.2f}")
-
-# Display each user's friends
-print(f"\nDetailed friend lists:")
-for user in users:
-    friend_names = [friend["name"] for friend in user["friends"]]
-    print(f"{user['name']} (ID {user['id']}) is friends with: {', '.join(friend_names)}")
+# Or alternatively, if you want to access by list index (but this is less reliable):
+# print("Friends of friends for user 5:", friends_of_friend_ids(users[5]))
+interests = [
+(0, "Hadoop"), (0, "Big Data"), (0, "HBase"), (0, "Java"),
+(0, "Spark"), (0, "Storm"), (0, "Cassandra"),
+(1, "NoSQL"), (1, "MongoDB"), (1, "Cassandra"), (1, "HBase"),
+(1, "Postgres"), (2, "Python"), (2, "scikit-learn"), (2, "scipy"),
+(2, "numpy"), (2, "statsmodels"), (2, "pandas"), (3, "R"), (3, "Python"),
+(3, "statistics"), (3, "regression"), (3, "probability"),
+(4, "machine learning"), (4, "regression"), (4, "decision trees"),
+(4, "libsvm"), (5, "Python"), (5, "R"), (5, "Java"), (5, "C++"),
+(5, "Haskell"), (5, "programming languages"), (6, "statistics"),
+(6, "probability"), (6, "mathematics"), (6, "theory"),
+(7, "machine learning"), (7, "scikit-learn"), (7, "Mahout"),
+(7, "neural networks"), (8, "neural networks"), (8, "deep learning"),
+(8, "Big Data"), (8, "artificial intelligence"), (9, "Hadoop"),
+(9, "Java"), (9, "MapReduce"), (9, "Big Data")
+]
+def data_scientists_who_like(target_interest):
+    return [user_id
+            for user_id, interest in interests
+            if interest == target_interest]
+from collections import defaultdict
+user_id_by_interest= defaultdict(list)
+for user_id, interest in interests:
+    user_id_by_interest[interest].append(user_id)
